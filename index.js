@@ -59,6 +59,15 @@ app.post("/", async (req, res) => {
   }
 });
 
+app.post("/write-json", (req, res) => {
+  const data = req.body; // Data sent from the dashboard
+  const jsonData = JSON.stringify(data, null, 2); // Convert data to JSON format
+
+  fs.writeFileSync(filePath, jsonData);
+
+  res.status(200).json({ message: "Data written to JSON file." });
+});
+
 const port = 5000;
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
