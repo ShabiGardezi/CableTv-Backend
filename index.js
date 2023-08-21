@@ -68,6 +68,35 @@ app.post("/write-json", (req, res) => {
   res.status(200).json({ message: "Data written to JSON file." });
 });
 
+app.post("/api/signup", (req, res) => {
+  const { username, email, password } = req.body;
+
+  // In a real application, you would validate and process the data, then store it in a database.
+  // For the sake of this example, let's just return the received data.
+  res.json({
+    message: "Signup successful!",
+    data: {
+      username,
+      email,
+    },
+  });
+});
+
+const users = [{ id: 1, email: "test@example.com", password: "password123" }];
+
+app.post("/api/login", (req, res) => {
+  const { email, password } = req.body;
+
+  // Find the user with the provided email
+  const user = users.find((u) => u.email === email);
+
+  if (!user || user.password !== password) {
+    return res.status(401).json({ error: "Wrong email or password" });
+  }
+
+  // In a real application, you might generate a JWT token here
+  res.json({ message: "Login successful" });
+});
 const port = 5000;
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
