@@ -1,9 +1,11 @@
 const express = require("express");
 const fs = require("fs").promises;
+const bodyParser = require("body-parser");
 const cors = require("cors");
 const filePath = "zipCodes.json";
 
 const app = express();
+app.use(bodyParser.json());
 app.use(express.json());
 
 app.use(
