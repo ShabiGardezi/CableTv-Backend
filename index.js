@@ -3,6 +3,7 @@ const fs = require("fs").promises;
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const filePath = "zipCodes.json";
+const multer = require("multer"); // Import multer middleware for handle file upload
 
 const app = express();
 app.use(bodyParser.json());
@@ -95,10 +96,45 @@ app.post("/api/login", (req, res) => {
   if (!user || user.password !== password) {
     return res.status(401).json({ error: "Wrong email or password" });
   }
-
-  // In a real application, you might generate a JWT token here
+  //  might generate a JWT token here
   res.json({ message: "Login successful" });
 });
+
+app.get("/api/all-data", async (req, res) => {
+  try {
+    const data = await fs.readFile(filePath, "utf8");
+    const jsonData = JSON.parse(data);
+    res.json(jsonData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Multer configuration for file upload
+const storage = multer.memoryStorage(); // Store files in memory
+const upload = multer({ storage });
+
+// Define an endpoint for file upload
+app.post("/upload-json", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const buffer = req.file.buffer.toString("utf8");
+    const jsonData = JSON.parse(buffer);
+
+    // You can now write jsonData to your JSON file or process it as needed
+    fs.writeFileSync(filePath, JSON.stringify(jsonData, null, 2));
+
+    res.status(200).json({ message: "File uploaded successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 const port = 5000;
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
