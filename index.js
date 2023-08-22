@@ -4,9 +4,6 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const filePath = "zipCodes.json";
 const multer = require("multer"); // Import multer middleware for handle file upload
-const jwt = require("jsonwebtoken");
-const expressJwt = require("express-jwt");
-const crypto = require("crypto");
 
 const app = express();
 app.use(bodyParser.json());
@@ -84,36 +81,10 @@ app.post("/", async (req, res) => {
   }
 });
 
-app.post("/write-json", (req, res) => {
-  const data = req.body; // Data sent from the dashboard
-  const jsonData = JSON.stringify(data, null, 2); // Convert data to JSON format
-
-  fs.writeFileSync(filePath, jsonData);
-
-  res.status(200).json({ message: "Data written to JSON file." });
-});
-// Secret key to sign and verify tokens
-const secretKey = crypto.randomBytes(32).toString("hex");
-
-console.log("Generated Secret Key:", secretKey);
-// Middleware to generate and verify JWT tokens
-const createToken = (user) => {
-  return jwt.sign(
-    { id: user.id, email: user.email, role: user.role },
-    secretKey,
-    {
-      expiresIn: "1h", // Token expiration time
-    }
-  );
-};
-
-// Middleware to verify JWT in requests
-const verifyToken = expressJwt({ secret: secretKey, algorithms: ["HS256"] });
-app.post("/api/signup", verifyToken, (req, res) => {
+app.post("/api/signup", (req, res) => {
   const { username, email, password, role } = req.body;
 
-  // Check if the requester is an admin
-  if (req.user && req.user.role === "admin") {
+  if (req.body.role === "admin") {
     // Add the new user to the user data (In a real application, you'd add this to a database)
     const newUser = { id: users.length + 1, username, email, password, role };
     users.push(newUser);
@@ -136,10 +107,6 @@ app.post("/api/login", (req, res) => {
   if (!user || user.password !== password) {
     return res.status(401).json({ error: "Wrong email or password" });
   }
-
-  // Create a JWT token and send it in the response
-  const token = createToken(user);
-  res.json({ token });
 });
 app.get("/api/all-data", async (req, res) => {
   try {
@@ -153,28 +120,28 @@ app.get("/api/all-data", async (req, res) => {
 });
 
 // Multer configuration for file upload
-const storage = multer.memoryStorage(); // Store files in memory
-const upload = multer({ storage });
+// const storage = multer.memoryStorage(); // Store files in memory
+// const upload = multer({ storage });
 
 // Define an endpoint for file upload
-app.post("/upload-json", upload.single("file"), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
+// app.post("/upload-json", upload.single("file"), async (req, res) => {
+//   try {
+//     if (!req.file) {
+//       return res.status(400).json({ error: "No file uploaded" });
+//     }
 
-    const buffer = req.file.buffer.toString("utf8");
-    const jsonData = JSON.parse(buffer);
+//     const buffer = req.file.buffer.toString("utf8");
+//     const jsonData = JSON.parse(buffer);
 
-    // You can now write jsonData to your JSON file or process it as needed
-    fs.writeFileSync(filePath, JSON.stringify(jsonData, null, 2));
+//     // You can now write jsonData to your JSON file or process it as needed
+//     fs.writeFileSync(filePath, JSON.stringify(jsonData, null, 2));
 
-    res.status(200).json({ message: "File uploaded successfully" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
+//     res.status(200).json({ message: "File uploaded successfully" });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// });
 
 const port = 5000;
 app.listen(port, () => {
