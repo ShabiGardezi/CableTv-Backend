@@ -4,6 +4,9 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const filePath = "zipCodes.json";
 const multer = require("multer"); // Import multer middleware for handle file upload
+const jwt = require("jsonwebtoken");
+const expressJwt = require("express-jwt");
+const crypto = require("crypto");
 
 const app = express();
 app.use(bodyParser.json());
@@ -15,6 +18,25 @@ app.use(
     methods: "GET, POST, PUT, DELETE", // Allowed HTTP methods
   })
 );
+
+// dummy user to access dashboard
+
+const users = [
+  {
+    id: 1,
+    username: "user1",
+    email: "user1@example.com",
+    password: "password123",
+    role: "user",
+  },
+  {
+    id: 2,
+    username: "admin1",
+    email: "admin1@example.com",
+    password: "admin123",
+    role: "admin",
+  },
+];
 
 function divideCompanies(companies, jsonData) {
   let result = {
@@ -70,22 +92,40 @@ app.post("/write-json", (req, res) => {
 
   res.status(200).json({ message: "Data written to JSON file." });
 });
+// Secret key to sign and verify tokens
+const secretKey = crypto.randomBytes(32).toString("hex");
 
-app.post("/api/signup", (req, res) => {
-  const { username, email, password } = req.body;
+console.log("Generated Secret Key:", secretKey);
+// Middleware to generate and verify JWT tokens
+const createToken = (user) => {
+  return jwt.sign(
+    { id: user.id, email: user.email, role: user.role },
+    secretKey,
+    {
+      expiresIn: "1h", // Token expiration time
+    }
+  );
+};
 
-  // In a real application, you would validate and process the data, then store it in a database.
-  // For the sake of this example, let's just return the received data.
-  res.json({
-    message: "Signup successful!",
-    data: {
-      username,
-      email,
-    },
-  });
+// Middleware to verify JWT in requests
+const verifyToken = expressJwt({ secret: secretKey, algorithms: ["HS256"] });
+app.post("/api/signup", verifyToken, (req, res) => {
+  const { username, email, password, role } = req.body;
+
+  // Check if the requester is an admin
+  if (req.user && req.user.role === "admin") {
+    // Add the new user to the user data (In a real application, you'd add this to a database)
+    const newUser = { id: users.length + 1, username, email, password, role };
+    users.push(newUser);
+
+    res.json({
+      message: "User added successfully!",
+      data: newUser,
+    });
+  } else {
+    res.status(403).json({ error: "Only admin users can add new users" });
+  }
 });
-
-const users = [{ id: 1, email: "test@example.com", password: "password123" }];
 
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
@@ -96,10 +136,11 @@ app.post("/api/login", (req, res) => {
   if (!user || user.password !== password) {
     return res.status(401).json({ error: "Wrong email or password" });
   }
-  //  might generate a JWT token here
-  res.json({ message: "Login successful" });
-});
 
+  // Create a JWT token and send it in the response
+  const token = createToken(user);
+  res.json({ token });
+});
 app.get("/api/all-data", async (req, res) => {
   try {
     const data = await fs.readFile(filePath, "utf8");
