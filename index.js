@@ -59,34 +59,34 @@ app.post("/", async (req, res) => {
   }
 });
 
-app.post("/api/signup", (req, res) => {
-  const { username, email, password } = req.body;
+app.post('/api/signup', (req, res) => {
+  const { username, email, password, role } = req.body;
 
-  // In a real application, you would validate and process the data, then store it in a database.
-  // For the sake of this example, let's just return the received data.
-  res.json({
-    message: "Signup successful!",
-    data: {
-      username,
-      email,
-    },
-  });
+  // Validate input (e.g., check for duplicate emails)
+  // For demonstration, we'll assume the email is unique.
+
+  const newUser = { username, email, password, role };
+  users.push(newUser); // Store the user in your database
+
+  res.status(201).json({ message: 'Signup successful', user: newUser });
 });
 
 const users = [{ id: 1, email: "test@example.com", password: "password123" }];
 
-app.post("/api/login", (req, res) => {
+app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
 
-  // Find the user with the provided email
-  const user = users.find((u) => u.email === email);
+  // Validate email and password (replace with your authentication logic)
+  // For demonstration, we'll just check if the email and password match a user in our dummy array.
+  const user = users.find((u) => u.email === email && u.password === password);
 
-  if (!user || user.password !== password) {
-    return res.status(401).json({ error: "Wrong email or password" });
+  if (!user) {
+    return res.status(401).json({ message: 'Invalid credentials' });
   }
 
-  // In a real application, you might generate a JWT token here
-  res.json({ message: "Login successful" });
+  // Generate and return a token here for authentication if needed
+
+  res.json({ message: 'Login successful', user });
 });
 const port = 5000;
 app.listen(port, () => {
