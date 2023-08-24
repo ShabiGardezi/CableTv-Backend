@@ -59,7 +59,7 @@ app.post("/", async (req, res) => {
   }
 });
 
-app.post('/api/signup', (req, res) => {
+app.post("/api/signup", (req, res) => {
   const { username, email, password, role } = req.body;
 
   // Validate input (e.g., check for duplicate emails)
@@ -68,12 +68,14 @@ app.post('/api/signup', (req, res) => {
   const newUser = { username, email, password, role };
   users.push(newUser); // Store the user in your database
 
-  res.status(201).json({ message: 'Signup successful', user: newUser });
+  res.status(201).json({ message: "Signup successful", user: newUser });
 });
 
-const users = [{ id: 1, email: "test@example.com", password: "password123" }];
+const users = [
+  { id: 1, email: "test@example.com", password: "password123", role: "admin" },
+];
 
-app.post('/api/login', (req, res) => {
+app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
 
   // Validate email and password (replace with your authentication logic)
@@ -81,12 +83,12 @@ app.post('/api/login', (req, res) => {
   const user = users.find((u) => u.email === email && u.password === password);
 
   if (!user) {
-    return res.status(401).json({ message: 'Invalid credentials' });
+    return res.status(401).json({ message: "Invalid credentials" });
   }
 
   // Generate and return a token here for authentication if needed
 
-  res.json({ message: 'Login successful', user });
+  res.json({ message: "Login successful", user });
 });
 const port = 5000;
 app.listen(port, () => {
