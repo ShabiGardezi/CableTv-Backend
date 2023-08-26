@@ -2,6 +2,10 @@ const express = require("express");
 const fs = require("fs").promises;
 const cors = require("cors");
 const filePath = "zipCodes.json";
+const connectTodatabase = require("./connection");
+const company = require("./schemas/companies");
+const User = require("./schemas/user");
+connectTodatabase();
 
 const app = express();
 app.use(express.json());
@@ -59,37 +63,60 @@ app.post("/", async (req, res) => {
   }
 });
 
-app.post("/api/signup", (req, res) => {
-  const { username, email, password, role } = req.body;
+app.post("/api/signup", async (req, res) => {
+  try {
+    const { username, email, password, role } = req.body;
+    const findUser = await User.findOne({ $or: [{ email }, { username }] });
+    if (findUser) {
+      return res
+        .status(400)
+        .json({ message: "username or email already exists" });
+    }
 
-  // Validate input (e.g., check for duplicate emails)
-  // For demonstration, we'll assume the email is unique.
+    const newUser = new User({
+      ...req.body,
+    });
 
-  const newUser = { username, email, password, role };
-  users.push(newUser); // Store the user in your database
+    const saved = await newUser.save();
 
-  res.status(201).json({ message: "Signup successful", user: newUser });
+    res.status(201).json({ message: "Signup successful", payload: saved });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: "Error occured" });
+  }
 });
 
 const users = [
   { id: 1, email: "test@example.com", password: "password123", role: "admin" },
 ];
 
-app.post("/api/login", (req, res) => {
+app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
 
-  // Validate email and password (replace with your authentication logic)
-  // For demonstration, we'll just check if the email and password match a user in our dummy array.
-  const user = users.find((u) => u.email === email && u.password === password);
+  const findUser = await User.findOne(
+    { email: email, password: password },
+    "-password"
+  );
 
-  if (!user) {
+  if (!findUser) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
 
-  // Generate and return a token here for authentication if needed
-
-  res.json({ message: "Login successful", user });
+  res.json({ message: "Login successful", payload: findUser });
 });
+
+app.post("/api/add-provider", async (req, res) => {
+  try {
+    const newcompany = new company({
+      ...req.body,
+    });
+    const saved = await newcompany.save();
+    res.json({ message: "added successfully", payload: saved });
+  } catch (error) {
+    res.status(400).json({ message: "Error occured" });
+  }
+});
+
 const port = 5000;
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
