@@ -86,10 +86,6 @@ app.post("/api/signup", async (req, res) => {
   }
 });
 
-const users = [
-  { id: 1, email: "test@example.com", password: "password123", role: "admin" },
-];
-
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
 
