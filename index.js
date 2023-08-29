@@ -5,6 +5,7 @@ const filePath = "zipCodes.json";
 const connectTodatabase = require("./connection");
 const company = require("./schemas/companies");
 const User = require("./schemas/user");
+const pages = require("./schemas/pages");
 connectTodatabase();
 
 const app = express();
@@ -110,6 +111,40 @@ app.post("/api/add-provider", async (req, res) => {
     res.json({ message: "added successfully", payload: saved });
   } catch (error) {
     res.status(400).json({ message: "Error occured" });
+  }
+});
+
+app.post("/api/update/provider", async (req, res) => {
+  try {
+    const companyName = req.query.companyName;
+    const updateFields = {};
+    const pushFields = {};
+    console.log("body: ", req.body);
+
+    // Iterate through fields in the payload
+    for (const key in req.body) {
+      if (req.body[key] !== null) {
+        if (key === "Features" || key === "zipcodes") {
+          pushFields[key] = req.body[key];
+        } else {
+          updateFields[key] = req.body[key];
+        }
+      }
+    }
+    console.log(updateFields);
+    // Update only non-null fields in the document
+    const updatedCompany = await company.updateOne(
+      { CompanyName: companyName },
+      { $set: updateFields, $push: pushFields }
+    );
+
+    if (updatedCompany.modifiedCount === 0) {
+      return res.status(404).json({ message: "Company not found" });
+    }
+
+    res.json({ message: "update successful", payload: updatedCompany });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating company" });
   }
 });
 
