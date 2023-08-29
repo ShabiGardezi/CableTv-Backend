@@ -119,7 +119,6 @@ app.post("/api/update/provider", async (req, res) => {
     const companyName = req.query.companyName;
     const updateFields = {};
     const pushFields = {};
-    console.log("body: ", req.body);
 
     // Iterate through fields in the payload
     for (const key in req.body) {
@@ -131,7 +130,6 @@ app.post("/api/update/provider", async (req, res) => {
         }
       }
     }
-    console.log(updateFields);
     // Update only non-null fields in the document
     const updatedCompany = await company.updateOne(
       { CompanyName: companyName },
