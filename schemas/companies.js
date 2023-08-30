@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const ComapanySchema = new mongoose.Schema({
-    CompanyName: {
+  CompanyName: {
     type: String,
     required: true,
   },
@@ -13,17 +13,16 @@ const ComapanySchema = new mongoose.Schema({
   rating: {
     type: String,
   },
-  Price : {
+  Price: {
     type: Number,
     required: true,
   },
 
-  zipcodes : [],
+  zipcodes: [],
 
   Channels: {
     type: String,
   },
-
 });
 
 module.exports = mongoose.model("Companies", ComapanySchema);
