@@ -23,6 +23,10 @@ const ComapanySchema = new mongoose.Schema({
   Channels: {
     type: String,
   },
+  Category: {
+    type: String,
+    required: true,
+  },
 });
 
 module.exports = mongoose.model("Companies", ComapanySchema);
