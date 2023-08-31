@@ -6,6 +6,7 @@ const connectTodatabase = require("./connection");
 const company = require("./schemas/companies");
 const User = require("./schemas/user");
 const pages = require("./schemas/pages");
+const { default: mongoose } = require("mongoose");
 connectTodatabase();
 
 const app = express();
@@ -143,6 +144,29 @@ app.post("/api/update/provider", async (req, res) => {
     res.json({ message: "update successful", payload: updatedCompany });
   } catch (error) {
     res.status(500).json({ message: "Error updating company" });
+  }
+});
+
+app.post("/api/update/website", async (req, res) => {
+  try {
+    const { mongoObj, data } = req.body;
+    let update = {};
+
+    for (const key in data) {
+      if (data.hasOwnProperty(key)) {
+        const value = data[key];
+        if (value) {
+          update[mongoObj[key]] = value;
+        }
+      }
+    }
+    const result = await pages.findByIdAndUpdate(
+      { _id: "64ee26ed33173fd34f853602" },
+      { $set: update }
+    );
+    res.json({ message: "update successful" });
+  } catch (error) {
+    res.status(500).json({ message: "something went wrong" });
   }
 });
 
