@@ -180,6 +180,7 @@ app.get("/api/pages", async (req, res) => {
     }
 
     res.json(page);
+    console.log(page);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
