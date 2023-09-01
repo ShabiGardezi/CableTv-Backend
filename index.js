@@ -170,6 +170,22 @@ app.post("/api/update/website", async (req, res) => {
   }
 });
 
+// Define a route to fetch the entire document
+app.get("/api/pages", async (req, res) => {
+  try {
+    const page = await pages.findOne();
+
+    if (!page) {
+      return res.status(404).json({ message: "Page not found" });
+    }
+
+    res.json(page);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 const port = 5000;
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
