@@ -19,19 +19,17 @@ app.use(
   })
 );
 
-function divideCompanies(companies, jsonData) {
+function divideCompanies(companies) {
   let result = {
     tvProviders: [],
     internetProviders: [],
     bundles: [],
   };
 
-  jsonData.Sheet2.forEach((obj, index) => {
-    if (companies.includes(obj["Column2"])) {
-      if (index >= 1 && index <= 18) result.tvProviders.push(obj);
-      else if (index >= 19 && index <= 44) result.internetProviders.push(obj);
-      else result.bundles.push(obj);
-    }
+  companies.forEach((c) => {
+    if (c.Category === "Internet") result.internetProviders.push(c);
+    else if (c.Category === "TV") result.tvProviders.push(c);
+    else result.bundles.push(c);
   });
 
   return result;
@@ -39,25 +37,13 @@ function divideCompanies(companies, jsonData) {
 
 app.post("/", async (req, res) => {
   const { zipCode } = req.body;
-  let companies = [];
-  console.log(req.body);
 
   try {
-    const data = await fs.readFile(filePath, "utf8");
+    const response = await company
+      .find({ zipcodes: { $elemMatch: { $in: [zipCode] } } })
+      .select({ zipcodes: 0 });
 
-    const jsonData = JSON.parse(data);
-
-    jsonData.Sheet1.map((obj) => {
-      for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
-          const value = obj[key];
-          if (value === parseInt(zipCode)) {
-            companies.push(jsonData.Sheet1[0][key]);
-          }
-        }
-      }
-    });
-    const result = divideCompanies(companies, jsonData);
+    const result = divideCompanies(response);
     res.send(result);
   } catch (error) {
     console.error(error);
@@ -180,7 +166,6 @@ app.get("/api/pages", async (req, res) => {
     }
 
     res.json(page);
-    console.log(page);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
