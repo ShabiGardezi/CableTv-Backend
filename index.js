@@ -7,6 +7,7 @@ const company = require("./schemas/companies");
 const User = require("./schemas/user");
 const pages = require("./schemas/pages");
 const { default: mongoose } = require("mongoose");
+
 connectTodatabase();
 
 const app = express();
@@ -34,6 +35,19 @@ function divideCompanies(companies) {
 
   return result;
 }
+app.get("/api/companyNames", async (req, res) => {
+  try {
+    // Assuming you have a Company model
+    const companyNames = await company.find({}, "CompanyName"); // Replace "Company" with your actual model name
+
+    // Extract the company names and send them as JSON response
+    const names = companyNames.map((company) => company.CompanyName);
+    res.json(names);
+  } catch (error) {
+    console.error("Error fetching company names:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 app.post("/", async (req, res) => {
   const { zipCode } = req.body;
